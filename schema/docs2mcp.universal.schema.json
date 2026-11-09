@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/suissa/docs2mcp/schema/docs2mcp.universal.schema.json",
+  "title": "docs2mcp Universal Documentation Model",
+  "description": "Platform-neutral contract used between documentation extractors and MCP/REST/WebSocket generators.",
+  "type": "object",
+  "required": ["schemaVersion", "generatedAt", "source", "navigation", "pages", "operations", "channels"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "source": {
+      "type": "object",
+      "required": ["url", "title", "description", "system", "classification", "kind"],
+      "properties": {
+        "url": { "type": "string", "format": "uri" },
+        "title": { "type": "string" },
+        "version": { "type": "string" },
+        "description": { "type": "string" },
+        "system": { "enum": ["mintlify", "docsify", "hugo", "mkdocs", "docusaurus", "custom-html", "unknown"] },
+        "language": { "type": "string" },
+        "kind": { "enum": ["http-api", "sdk", "hybrid", "unknown"] },
+        "classification": {
+          "type": "object",
+          "required": ["system", "confidence", "detectedBy", "signals"],
+          "properties": {
+            "system": { "type": "string" },
+            "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+            "detectedBy": { "type": "string" },
+            "signals": { "type": "array", "items": { "type": "string" } }
+          },
+          "additionalProperties": false
+        },
+        "upstream": {
+          "type": "object",
+          "required": ["protocol", "url", "discoveredFrom"],
+          "properties": {
+            "protocol": { "const": "mcp" },
+            "url": { "type": "string", "format": "uri" },
+            "discoveredFrom": { "type": "string", "format": "uri" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": true
+    },
+    "navigation": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["title", "url", "depth"],
+        "properties": {
+          "title": { "type": "string" },
+          "url": { "type": "string", "format": "uri-reference" },
+          "anchor": { "type": "string" },
+          "section": { "type": "string" },
+          "parent": { "type": "string" },
+          "depth": { "type": "integer", "minimum": 0 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "pages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["title", "url", "content"],
+        "properties": {
+          "title": { "type": "string" },
+          "url": { "type": "string", "format": "uri" },
+          "anchor": { "type": "string" },
+          "content": { "type": "string" },
+          "contentType": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "operations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "description", "sourceUrl", "sourceAnchor", "sourceMethod", "asynchronous", "parameters", "inputSchema", "toolName", "upstreamAliases", "http", "annotations"],
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "description": { "type": "string" },
+          "sourceUrl": { "type": "string", "format": "uri-reference" },
+          "sourceAnchor": { "type": "string" },
+          "owner": { "type": "string" },
+          "sourceMethod": { "type": "string" },
+          "returnType": { "type": "string" },
+          "asynchronous": { "type": "boolean" },
+          "toolName": { "type": "string", "pattern": "^[a-zA-Z0-9_-]{1,64}$" },
+          "upstreamAliases": { "type": "array", "items": { "type": "string" } },
+          "parameters": { "type": "array", "items": { "type": "object" } },
+          "inputSchema": { "type": "object" },
+          "http": {
+            "type": "object",
+            "required": ["method", "path"],
+            "properties": {
+              "method": { "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"] },
+              "path": { "type": "string", "pattern": "^/" }
+            },
+            "additionalProperties": false
+          },
+          "annotations": {
+            "type": "object",
+            "required": ["readOnlyHint", "destructiveHint", "idempotentHint"],
+            "properties": {
+              "readOnlyHint": { "type": "boolean" },
+              "destructiveHint": { "type": "boolean" },
+              "idempotentHint": { "type": "boolean" }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "channels": {
+      "type": "object",
+      "required": ["rest", "ws", "stdio", "mcpHttp"],
+      "properties": {
+        "rest": { "type": "boolean" },
+        "ws": { "type": "boolean" },
+        "stdio": { "type": "boolean" },
+        "mcpHttp": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

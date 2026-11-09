@@ -1,0 +1,44 @@
+{
+  "name": "docs2mcp",
+  "version": "0.1.0",
+  "description": "Turn online documentation into typed MCP tools and REST/WebSocket APIs.",
+  "type": "module",
+  "license": "MIT",
+  "engines": { "node": ">=22.0.0" },
+  "bin": { "docs2mcp": "./dist/cli.js" },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    "./runtime": { "types": "./dist/runtime/index.d.ts", "import": "./dist/runtime/index.js" }
+  },
+  "files": ["dist", "schema", "README.md", "LICENSE"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/cli.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepare": "npm run build",
+    "prepack": "npm run build"
+  },
+  "dependencies": {
+    "@fastify/websocket": "^11.3.7",
+    "@modelcontextprotocol/client": "^2.4.0",
+    "@modelcontextprotocol/fastify": "^2.0.1",
+    "@modelcontextprotocol/node": "^2.1.2",
+    "@modelcontextprotocol/server": "^2.4.0",
+    "cheerio": "^1.1.2",
+    "commander": "^14.0.1",
+    "fastify": "^5.6.2",
+    "zod": "^4.1.12",
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "@types/ws": "^8.18.1",
+    "tsx": "^4.20.6",
+    "typescript": "^6.0.0",
+    "vitest": "^4.0.7"
+  }
+}
