@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>XVideos API — Documentation</title>
+  <meta name="description" content="Asynchronous API wrapper documentation.">
+</head>
+<body>
+  <nav id="sidebarNav">
+    <div class="nav-section-title">Core Objects</div>
+    <div class="nav-collapsible">
+      <a class="nav-link nav-link-parent" href="#client">Client</a>
+      <div class="nav-sub-links">
+        <a class="nav-link nav-link-sub" href="#client-search">search()</a>
+      </div>
+    </div>
+    <div class="nav-collapsible">
+      <a class="nav-link nav-link-parent" href="#video">Video</a>
+      <div class="nav-sub-links">
+        <a class="nav-link nav-link-sub" href="#video-download">download()</a>
+      </div>
+    </div>
+    <div class="nav-collapsible">
+      <a class="nav-link nav-link-parent" href="#channel">Channel</a>
+      <div class="nav-sub-links">
+        <a class="nav-link nav-link-sub" href="#channel-videos">videos()</a>
+      </div>
+    </div>
+    <div class="nav-collapsible">
+      <a class="nav-link nav-link-parent" href="#pornstar">Pornstar</a>
+      <div class="nav-sub-links">
+        <a class="nav-link nav-link-sub" href="#pornstar-videos">videos()</a>
+      </div>
+    </div>
+  </nav>
+  <main>
+    <h1>XVideos API</h1>
+    <span class="sidebar-version">v2.5.3</span>
+    <div class="section">
+      <span class="section-anchor" id="client-search"></span>
+      <div class="method-card">
+        <div class="method-header-row">
+          <h3 class="method-title">Search Videos <code>search()</code></h3>
+          <div class="method-tags"><span class="tag tag-async">async</span></div>
+        </div>
+        <div class="method-desc">Searches for videos and yields results as an async generator.</div>
+        <div class="method-signature">async for result in client.search(
+  query: str,
+  sorting_sort: str | Sort = Sort.Sort_relevance,
+  pages: int | str = 2
+) -&gt; AsyncGenerator[ScrapeResult[Video], None]</div>
+        <h4 class="method-section-title">Parameters</h4>
+        <ul class="param-list">
+          <li class="param-item"><span class="param-name">query</span> <span class="param-type">str</span> <span class="param-desc">— Search terms</span></li>
+          <li class="param-item"><span class="param-name">pages</span> <span class="param-type">int | "all"</span> <span class="param-desc">— Number of pages</span></li>
+        </ul>
+        <h4 class="method-section-title">Returns</h4>
+        <span class="returns-tag">→ AsyncGenerator[ScrapeResult[Video], None]</span>
+      </div>
+    </div>
+    <div class="section">
+      <span class="section-anchor" id="video-download"></span>
+      <div class="method-card">
+        <div class="method-header-row">
+          <h3 class="method-title">Download Video <code>download()</code></h3>
+          <div class="method-tags"><span class="tag tag-async">async</span></div>
+        </div>
+        <div class="method-desc">Downloads the video using the HLS downloader.</div>
+        <div class="method-signature">await video.download(
+  configuration: DownloadConfigHLS
+) -&gt; bool | DownloadReport</div>
+        <h4 class="method-section-title">Parameters</h4>
+        <ul class="param-list">
+          <li class="param-item"><span class="param-name">configuration</span> <span class="param-type">DownloadConfigHLS</span> <span class="param-desc">— Download settings</span></li>
+        </ul>
+        <h4 class="method-section-title">Returns</h4>
+        <span class="returns-tag">→ bool | DownloadReport</span>
+      </div>
+    </div>
+    <div class="section">
+      <span class="section-anchor" id="channel-videos"></span>
+      <div class="method-card">
+        <div class="method-header-row">
+          <h3 class="method-title">Get Channel Videos <code>videos()</code></h3>
+          <div class="method-tags"><span class="tag tag-async">async</span></div>
+        </div>
+        <div class="method-desc">Iterates over the channel's uploaded videos. Set pages=0 to fetch all pages.</div>
+        <div class="method-signature">async for result in channel.videos(
+  pages: int = 0
+) -&gt; AsyncGenerator[ScrapeResult[Video], None]</div>
+        <h4 class="method-section-title">Parameters</h4>
+        <ul class="param-list"><li class="param-item"><span class="param-name">pages</span> <span class="param-type">int</span> <span class="param-desc">— Maximum pages; 0 uses all profile pages.</span></li></ul>
+        <h4 class="method-section-title">Returns</h4>
+        <span class="returns-tag">→ AsyncGenerator[ScrapeResult[Video], None]</span>
+      </div>
+    </div>
+    <div class="section">
+      <span class="section-anchor" id="pornstar-videos"></span>
+      <div class="method-card">
+        <div class="method-header-row">
+          <h3 class="method-title">Get Performer Videos <code>videos()</code></h3>
+          <div class="method-tags"><span class="tag tag-async">async</span></div>
+        </div>
+        <div class="method-desc">Iterates over the performer's uploaded videos.</div>
+        <div class="method-signature">async for result in pornstar.videos(
+  pages: int = 0
+) -&gt; AsyncGenerator[ScrapeResult[Video], None]</div>
+        <h4 class="method-section-title">Parameters</h4>
+        <ul class="param-list"><li class="param-item"><span class="param-name">pages</span> <span class="param-type">int</span> <span class="param-desc">— Maximum pages</span></li></ul>
+        <h4 class="method-section-title">Returns</h4>
+        <span class="returns-tag">→ AsyncGenerator[ScrapeResult[Video], None]</span>
+      </div>
+    </div>
+  </main>
+  <p>Official MCP Server: https://mcp.echteralsfake.me/mcp</p>
+</body>
+</html>

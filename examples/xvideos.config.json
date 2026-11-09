@@ -1,0 +1,24 @@
+{
+  "$schema": "../schema/docs2mcp.config.schema.json",
+  "url": "https://docs.echteralsfake.me/xvideos/",
+  "system": "custom-html",
+  "outputDir": "./xvideos-server",
+  "maxPages": 100,
+  "timeoutMs": 20000,
+  "channels": {
+    "rest": true,
+    "ws": true,
+    "stdio": true,
+    "mcpHttp": true
+  },
+  "upstream": {
+    "url": "https://mcp.echteralsfake.me/mcp",
+    "timeoutMs": 30000
+  },
+  "server": {
+    "host": "127.0.0.1",
+    "port": 8787
+  },
+  "inspect": true,
+  "runServer": false
+}
