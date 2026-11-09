@@ -238,7 +238,6 @@ export class MCPServerInspector {
       });
     } finally {
       await app.close();
-      await executor.close?.();
     }
 
     for (const check of checks) {

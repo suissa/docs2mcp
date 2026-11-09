@@ -5,7 +5,8 @@ import type {
   ExtractedDocumentation,
   NavigationItem,
   ParameterDefinition,
-  RawOperation
+  RawOperation,
+  JsonSchema
 } from "../types.js";
 
 export interface ExtractorInput {
@@ -31,7 +32,7 @@ function sourceDefault(value: string): unknown {
   return enumMember?.[1] ?? trimmed;
 }
 
-function atomicTypeSchema(sourceType: string): import("../types.js").JsonSchema {
+function atomicTypeSchema(sourceType: string): JsonSchema {
   const normalized = sourceType.replace(/\s+/g, "");
   if (normalized === "None" || normalized === "null") return { type: "null" };
   if (normalized.includes("bool")) return { type: "boolean" };
@@ -52,9 +53,9 @@ function simpleTypeSchema(
   sourceType: string,
   name: string,
   description: string
-): import("../types.js").JsonSchema {
+): JsonSchema {
   const normalized = sourceType.replace(/\s+/g, "");
-  const base = { description, "x-source-type": sourceType };
+  const sourceMeta = { "x-source-type": sourceType };
 
   if (name === "configuration" && normalized.includes("DownloadConfigHLS")) {
     return {
@@ -81,7 +82,7 @@ function simpleTypeSchema(
       },
       required: ["quality"],
       additionalProperties: false,
-      ...base
+      ...sourceMeta
     };
   }
 
@@ -90,21 +91,21 @@ function simpleTypeSchema(
       type: "object",
       description: "Public iterator controls. Callable error handlers and runtime-only objects are not serializable over JSON.",
       additionalProperties: true,
-      ...base
+      ...sourceMeta
     };
   }
 
   if (normalized.includes("|")) {
-    const alternatives = normalized.split("|").map((part) => {
+    const alternatives: JsonSchema[] = normalized.split("|").map((part) => {
       const cleaned = part.replace(/^["']|["']$/g, "");
-      if (cleaned === "all") return { type: "string", enum: ["all"] } as const;
+      if (cleaned === "all") return { type: "string", enum: ["all"] };
       return atomicTypeSchema(cleaned);
     });
     const unique = new Map(alternatives.map((item) => [JSON.stringify(item), item]));
-    return { anyOf: [...unique.values()], ...base };
+    return { anyOf: [...unique.values()], description, ...sourceMeta };
   }
 
-  return { ...atomicTypeSchema(normalized), ...base };
+  return { ...atomicTypeSchema(normalized), description, ...sourceMeta };
 }
 
 function parseSignatureParameters(signature: string): Array<{ name: string; type: string; defaultText?: string }> {
@@ -138,8 +139,11 @@ function operationFromCard(
 ): RawOperation | undefined {
   const titleNode = card.find(".method-title").first();
   if (titleNode.length === 0) return undefined;
+
   const methodName = titleNode.find("code").first().text().trim();
-  const displayTitle = cleanText(titleNode.clone().children("a").remove().end().text()).replace(methodName, "").trim();
+  const displayTitle = cleanText(
+    titleNode.clone().children("a").remove().end().text()
+  ).replace(methodName, "").trim();
   const description = cleanText(card.find(".method-desc").first().text());
   const signature = card.find(".method-signature").first().text();
   const arrow = signature.lastIndexOf("->");
@@ -169,15 +173,28 @@ function operationFromCard(
     };
     if (parameter.defaultText !== undefined) {
       definition.defaultValue = sourceDefault(parameter.defaultText);
-      definition.schema = { ...definition.schema, default: definition.defaultValue, "x-source-default": parameter.defaultText };
+      definition.schema = {
+        ...definition.schema,
+        default: definition.defaultValue,
+        "x-source-default": parameter.defaultText
+      };
     }
     return definition;
   });
 
   const context: Record<string, { name: string; description: string }> = {
-    video: { name: "video_url", description: "URL of the video instance on which this method is called." },
-    channel: { name: "channel_url", description: "URL of the channel profile instance on which this method is called." },
-    pornstar: { name: "pornstar_url", description: "URL of the performer profile instance on which this method is called." }
+    video: {
+      name: "video_url",
+      description: "URL of the video instance on which this method is called."
+    },
+    channel: {
+      name: "channel_url",
+      description: "URL of the channel profile instance on which this method is called."
+    },
+    pornstar: {
+      name: "pornstar_url",
+      description: "URL of the performer profile instance on which this method is called."
+    }
   };
   const requiredContext = context[owner];
   if (requiredContext && !parameters.some((parameter) => parameter.name === requiredContext.name)) {
@@ -186,7 +203,11 @@ function operationFromCard(
       description: requiredContext.description,
       sourceType: "str (context inferred from parent object)",
       required: true,
-      schema: { type: "string", description: requiredContext.description, "x-source-type": "context" }
+      schema: {
+        type: "string",
+        description: requiredContext.description,
+        "x-source-type": "context"
+      }
     });
   }
 
@@ -221,14 +242,19 @@ export class CustomHtmlDocsExtractor {
       content: input.page.description,
       contentType: input.page.contentType
     }];
-    const sourceDocuments: Array<{ url: string; html: string }> = [{ url: input.page.url, html: input.page.html }];
+    const sourceDocuments: Array<{ url: string; html: string }> = [
+      { url: input.page.url, html: input.page.html }
+    ];
 
+    const sourceOrigin = new URL(input.page.url).origin;
     const seenPageUrls = new Set<string>([new URL(input.page.url).toString()]);
     for (const item of navigation) {
       const cleanUrl = new URL(item.url);
       cleanUrl.hash = "";
       const normalized = cleanUrl.toString();
-      if (seenPageUrls.has(normalized) || pages.length >= input.maxPages) continue;
+      if (cleanUrl.origin !== sourceOrigin || seenPageUrls.has(normalized) || pages.length >= input.maxPages) {
+        continue;
+      }
       seenPageUrls.add(normalized);
       try {
         const fetched = await input.fetchPage(normalized);
@@ -279,12 +305,12 @@ export class CustomHtmlDocsExtractor {
     const result: ExtractedDocumentation = {
       title,
       description,
-      language,
       kind: operations.length > 0 ? "sdk" : "unknown",
       navigation,
       pages,
       operations
     };
+    if (language) result.language = language;
     if (version) result.version = version;
     if (extractedRestApi(input.page.html)) result.kind = "hybrid";
     if (upstreamUrl) {
@@ -340,7 +366,6 @@ export class CustomHtmlDocsExtractor {
       child.find("a[href]").each((_linkIndex, link) => addLink(link, currentSection));
     });
 
-    // Some generators put navigation links under nested wrappers rather than direct children.
     if (items.length === 0) {
       nav.find("a[href]").each((_index, element) => addLink(element, currentSection));
     }

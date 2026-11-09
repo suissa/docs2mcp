@@ -18,7 +18,9 @@ export class MCPForger {
 
   async forge(config: MCPForgerConfig): Promise<GenerationResult> {
     if (!config.url) throw new Error("MCPForger requires a documentation URL.");
-    const analyzer = new DocsAnalyzer({ timeoutMs: config.timeoutMs });
+    const analyzer = config.timeoutMs === undefined
+      ? new DocsAnalyzer()
+      : new DocsAnalyzer({ timeoutMs: config.timeoutMs });
     const finisher = new Docs2MCPFinisher(
       config.runServer === true && config.channels?.stdio !== false
         ? (line) => console.error(line)

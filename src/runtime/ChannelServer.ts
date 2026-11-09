@@ -14,9 +14,7 @@ export interface ChannelServerOptions {
 }
 
 function record(value: unknown): Record<string, unknown> {
-  if (value && typeof value === "object" && !Array.isArray(value)) {
-    return value as Record<string, unknown>;
-  }
+  if (value && typeof value === "object" && !Array.isArray(value)) return value as Record<string, unknown>;
   return {};
 }
 
@@ -39,20 +37,14 @@ function coerceQueryValue(value: unknown, schema: JsonSchema | undefined): unkno
 function parseArguments(operation: OperationDefinition, input: Record<string, unknown>): Record<string, unknown> {
   const properties = operation.inputSchema.properties ?? {};
   const normalized: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(input)) {
-    normalized[key] = coerceQueryValue(value, properties[key]);
-  }
+  for (const [key, value] of Object.entries(input)) normalized[key] = coerceQueryValue(value, properties[key]);
   const parsed = jsonSchemaToZod(operation.inputSchema).safeParse(normalized);
-  if (!parsed.success) {
-    throw new Error(parsed.error.issues.map((issue) => issue.path.join(".") + ": " + issue.message).join("; "));
-  }
+  if (!parsed.success) throw new Error(parsed.error.issues.map((issue) => issue.path.join(".") + ": " + issue.message).join("; "));
   return parsed.data as Record<string, unknown>;
 }
 
 function resultForRest(result: unknown): unknown {
-  if (result && typeof result === "object" && "structuredContent" in result) {
-    return (result as { structuredContent: unknown }).structuredContent;
-  }
+  if (result && typeof result === "object" && "structuredContent" in result) return (result as { structuredContent: unknown }).structuredContent;
   if (result && typeof result === "object" && "content" in result) {
     const content = (result as { content: Array<{ type?: string; text?: string }> }).content;
     const text = content.filter((block) => block.type === "text").map((block) => block.text ?? "").join("\n");
@@ -76,59 +68,36 @@ function sendWs(socket: WebSocket, payload: unknown): void {
   if (socket.readyState === 1) socket.send(JSON.stringify(payload));
 }
 
-async function handleWsMessage(
-  socket: WebSocket,
-  raw: RawData,
-  model: UniversalDocumentation,
-  executor: ToolExecutor
-): Promise<void> {
-  let request: {
-    id?: string | number | null;
-    method?: string;
-    params?: Record<string, unknown>;
-  };
+async function handleWsMessage(socket: WebSocket, raw: RawData, model: UniversalDocumentation, executor: ToolExecutor): Promise<void> {
+  let request: { id?: string | number | null; method?: string; params?: Record<string, unknown> };
   try {
     request = JSON.parse(raw.toString()) as typeof request;
   } catch {
     sendWs(socket, { jsonrpc: "2.0", id: null, error: { code: -32700, message: "Invalid JSON." } });
     return;
   }
-
   const id = request.id ?? null;
-  const method = request.method;
   try {
-    if (method === "tools/list") {
-      sendWs(socket, {
-        jsonrpc: "2.0",
-        id,
-        result: { tools: model.operations.map((operation) => operationResponse(operation)) }
-      });
+    if (request.method === "tools/list") {
+      sendWs(socket, { jsonrpc: "2.0", id, result: { tools: model.operations.map(operationResponse) } });
       return;
     }
-    if (method === "tools/call") {
+    if (request.method === "tools/call") {
       const params = record(request.params);
       const name = typeof params.name === "string" ? params.name : "";
       const operation = model.operations.find((item) => item.toolName === name);
       if (!operation) throw new Error("Unknown tool: " + name);
-      const args = parseArguments(operation, record(params.arguments));
-      const output = await executor.execute(operation, args);
+      const output = await executor.execute(operation, parseArguments(operation, record(params.arguments)));
       sendWs(socket, {
         jsonrpc: "2.0",
         id,
-        result: {
-          content: [{ type: "text", text: JSON.stringify(output) }],
-          structuredContent: record(output)
-        }
+        result: { content: [{ type: "text", text: JSON.stringify(output) }], structuredContent: record(output) }
       });
       return;
     }
-    throw new Error("Unsupported WebSocket method: " + String(method));
+    throw new Error("Unsupported WebSocket method: " + String(request.method));
   } catch (error) {
-    sendWs(socket, {
-      jsonrpc: "2.0",
-      id,
-      error: { code: -32602, message: error instanceof Error ? error.message : String(error) }
-    });
+    sendWs(socket, { jsonrpc: "2.0", id, error: { code: -32602, message: error instanceof Error ? error.message : String(error) } });
   }
 }
 
@@ -147,11 +116,7 @@ export async function createChannelServer(
     system: model.source.system,
     tools: model.operations.length
   }));
-
-  app.get("/api/v1/tools", async () => ({
-    tools: model.operations.map((operation) => operationResponse(operation))
-  }));
-
+  app.get("/api/v1/tools", async () => ({ tools: model.operations.map(operationResponse) }));
   app.get("/openapi.json", async () => buildOpenApiDocument(model));
 
   if (options.rest !== false) {
@@ -161,11 +126,8 @@ export async function createChannelServer(
         url: operation.http.path,
         handler: async (request, reply) => {
           try {
-            const body = record(request.body);
-            const query = record(request.query);
-            const args = parseArguments(operation, { ...query, ...body });
-            const result = await executor.execute(operation, args);
-            return reply.code(200).send(resultForRest(result));
+            const args = parseArguments(operation, { ...record(request.query), ...record(request.body) });
+            return reply.code(200).send(resultForRest(await executor.execute(operation, args)));
           } catch (error) {
             return reply.code(400).send({
               error: "invalid_request",
@@ -180,16 +142,20 @@ export async function createChannelServer(
 
   if (options.ws !== false) {
     app.get("/ws", { websocket: true }, (socket) => {
-      socket.on("message", (raw) => {
-        void handleWsMessage(socket, raw, model, executor);
-      });
+      socket.on("message", (raw) => { void handleWsMessage(socket, raw, model, executor); });
     });
   }
 
   if (options.mcpHttp !== false) {
     const mcpHandler = createMcpHandler(() => createMcpServer(model, executor));
     const nodeHandler = toNodeHandler(mcpHandler);
-    app.all("/mcp", (request, reply) => nodeHandler(request.raw, reply.raw, request.body));
+    app.all("/mcp", (request, reply) =>
+      nodeHandler(
+        request.raw as Parameters<typeof nodeHandler>[0],
+        reply.raw as Parameters<typeof nodeHandler>[1],
+        request.body
+      )
+    );
   }
 
   return app;
@@ -207,8 +173,7 @@ export function buildOpenApiDocument(model: UniversalDocumentation): Record<stri
       responses: { "200": { description: "Operation result" }, "400": { description: "Invalid input" } }
     };
     if (operation.http.method === "GET") {
-      const properties = schema.properties ?? {};
-      request.parameters = Object.entries(properties).map(([name, property]) => ({
+      request.parameters = Object.entries(schema.properties ?? {}).map(([name, property]) => ({
         name,
         in: "query",
         required: (schema.required ?? []).includes(name),
@@ -216,10 +181,7 @@ export function buildOpenApiDocument(model: UniversalDocumentation): Record<stri
         schema: property
       }));
     } else {
-      request.requestBody = {
-        required: true,
-        content: { "application/json": { schema } }
-      };
+      request.requestBody = { required: true, content: { "application/json": { schema } } };
     }
     pathItem[operation.http.method.toLowerCase()] = request;
     paths[operation.http.path] = pathItem;

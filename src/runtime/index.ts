@@ -22,12 +22,13 @@ export async function runFromConfig(configLocation: string | URL): Promise<void>
     throw new Error("No upstream MCP URL is configured. The documentation describes an SDK but does not expose an executable HTTP API.");
   }
 
-  const executor = new UpstreamMcpExecutor(
-    upstreamUrl,
-    config.upstream?.timeoutMs ?? 30_000,
-    config.upstream?.headers ?? {}
-  );
-  const channels = config.channels ?? model.channels;
+  const executor = new UpstreamMcpExecutor(upstreamUrl, config.upstream?.timeoutMs ?? 30_000, config.upstream?.headers ?? {});
+  const channels = {
+    rest: config.channels?.rest ?? model.channels.rest,
+    ws: config.channels?.ws ?? model.channels.ws,
+    stdio: config.channels?.stdio ?? model.channels.stdio,
+    mcpHttp: config.channels?.mcpHttp ?? model.channels.mcpHttp
+  };
   const serverOptions = config.server ?? {};
   let app: Awaited<ReturnType<typeof createChannelServer>> | undefined;
 
@@ -51,9 +52,7 @@ export async function runFromConfig(configLocation: string | URL): Promise<void>
     await serveStdio(() => createMcpServer(model, executor));
   }
 
-  if (!channels.stdio && !app) {
-    throw new Error("No runtime channels are enabled in the configuration.");
-  }
+  if (!channels.stdio && !app) throw new Error("No runtime channels are enabled in the configuration.");
 
   const shutdown = async (): Promise<void> => {
     await app?.close();

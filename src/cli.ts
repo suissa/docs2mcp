@@ -24,7 +24,7 @@ async function readConfig(path: string | undefined): Promise<Partial<MCPForgerCo
   return parsed as Partial<MCPForgerConfig>;
 }
 
-function parseChannels(value: string | undefined): Partial<MCPForgerConfig["channels"]> {
+function parseChannels(value: string | undefined): Partial<NonNullable<MCPForgerConfig["channels"]>> {
   if (!value) return {};
   const enabled = new Set(value.split(",").map((part) => part.trim().toLowerCase()).filter(Boolean));
   const valid = new Set(["rest", "ws", "stdio", "mcphttp"]);
