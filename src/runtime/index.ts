@@ -21,10 +21,10 @@ export async function runFromConfig(configLocation: string | URL): Promise<void>
 
   const executor = new RoutingToolExecutor(model, {
     api: {
-      baseUrl: config.api?.baseUrl ?? model.source.api?.baseUrl,
-      headers: config.api?.headers,
-      authEnv: config.api?.authEnv,
-      timeoutMs: config.api?.timeoutMs
+      ...(config.api?.baseUrl ?? model.source.api?.baseUrl ? { baseUrl: config.api?.baseUrl ?? model.source.api?.baseUrl } : {}),
+      ...(config.api?.headers ? { headers: config.api.headers } : {}),
+      ...(config.api?.authEnv ? { authEnv: config.api.authEnv } : {}),
+      ...(config.api?.timeoutMs ? { timeoutMs: config.api.timeoutMs } : {})
     },
     ...(upstreamUrl ? { upstream: { url: upstreamUrl, headers: config.upstream?.headers, timeoutMs: config.upstream?.timeoutMs } } : {})
   });

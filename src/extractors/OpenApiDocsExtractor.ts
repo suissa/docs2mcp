@@ -158,7 +158,7 @@ function parameterFromOpenApi(
     sourceType: typeof schema.type === "string" ? schema.type : "unknown",
     required: parameter.required === true || location === "path",
     schema,
-    location: location as ParameterDefinition["location"]
+    location: location as NonNullable<ParameterDefinition["location"]>
   };
   if (schema.default !== undefined) definition.defaultValue = schema.default;
   return definition;
