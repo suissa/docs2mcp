@@ -368,7 +368,7 @@ function embeddedMintlifyOperation(
       sourceType: typeof schema.type === "string" ? schema.type : "unknown",
       required: parameter.required === true,
       schema,
-      location: location as ParameterDefinition["location"]
+      location: location as NonNullable<ParameterDefinition["location"]>
     });
   }
 
