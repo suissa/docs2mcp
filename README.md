@@ -173,7 +173,7 @@ MCPForger(config.json)
 
 The initial adapters recognize Mintlify, Docsify, Hugo, MkDocs, Docusaurus and custom HTML. Unknown or unsupported HTML is retained as unknown and still receives the generic navigation extractor. Platform signatures are evidence-based; the classifier never labels a site with a framework merely because it has a sidebar.
 
-The AbacatePay reference supplied for implementation is Mintlify-based and provides a second fixture target for the next extractor iteration. The current MVP's full operation extraction is focused on the custom-html XVideos documentation.
+Mintlify pages are now read for their embedded `openApiReferenceData`, including nested request-body schemas, response schemas, server URLs and processed security schemes. The extractor also follows linked `openapi.json`, `openapi.yaml` and `swagger` documents (including Mintlify `originalFileLocation`). AbacatePay is used as the regression fixture: its checkout creation page declares `POST /checkouts/create` against `https://api.abacatepay.com/v2` and Bearer authentication. The same path supports ordinary OpenAPI 3.x and Swagger 2.0 JSON/YAML specs.
 
 ## Universal schema
 

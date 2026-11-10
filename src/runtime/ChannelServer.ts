@@ -126,7 +126,13 @@ export async function createChannelServer(
         url: operation.http.path,
         handler: async (request, reply) => {
           try {
-            const args = parseArguments(operation, { ...record(request.query), ...record(request.body) });
+            const bodyInput = record(request.body);
+            const pathInput = record(request.params);
+            const queryInput = record(request.query);
+            const input = operation.sourceHttp
+              ? { ...pathInput, ...queryInput, ...(operation.parameters.some((parameter) => parameter.location === "body") ? { body: bodyInput } : bodyInput) }
+              : { ...queryInput, ...bodyInput };
+            const args = parseArguments(operation, input);
             return reply.code(200).send(resultForRest(await executor.execute(operation, args)));
           } catch (error) {
             return reply.code(400).send({

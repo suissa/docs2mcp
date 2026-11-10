@@ -4,15 +4,30 @@
   "description": "Turn online documentation into typed MCP tools and REST/WebSocket APIs.",
   "type": "module",
   "license": "MIT",
-  "engines": { "node": ">=22.0.0" },
-  "bin": { "docs2mcp": "./dist/cli.js" },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "bin": {
+    "docs2mcp": "./dist/cli.js"
+  },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
-    "./runtime": { "types": "./dist/runtime/index.d.ts", "import": "./dist/runtime/index.js" }
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./runtime": {
+      "types": "./dist/runtime/index.d.ts",
+      "import": "./dist/runtime/index.js"
+    }
   },
-  "files": ["dist", "schema", "README.md", "LICENSE"],
+  "files": [
+    "dist",
+    "schema",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "tsx src/cli.ts",
@@ -32,7 +47,8 @@
     "commander": "^14.0.1",
     "fastify": "^5.6.2",
     "zod": "^4.1.12",
-    "ws": "^8.18.3"
+    "ws": "^8.18.3",
+    "yaml": "^2.8.1"
   },
   "devDependencies": {
     "@types/node": "^24.10.0",

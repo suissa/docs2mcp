@@ -16,7 +16,11 @@ export class ToolNameHeuristic {
     const method = operation.sourceMethod.replace(/\(\)$/, "").toLowerCase();
     let action: string;
 
-    if (method === "search") action = "search_videos";
+    if (operation.sourceHttp) {
+      action = operation.sourceHttp.operationId
+        ? slug(operation.sourceHttp.operationId)
+        : slug(operation.title);
+    } else if (method === "search") action = "search_videos";
     else if (owner === "video" && method === "download") action = "download_video";
     else if (owner === "channel" && method === "videos") action = "get_channel_videos";
     else if (owner === "pornstar" && method === "videos") action = "get_pornstar_videos";
@@ -38,6 +42,8 @@ export class ToolNameHeuristic {
       operation.sourceMethod,
       operation.sourceMethod.replace(/\(\)$/, ""),
       operation.id.replace(/-/g, "_"),
+      operation.sourceHttp ? operation.sourceHttp.method + " " + operation.sourceHttp.path : "",
+      operation.sourceHttp?.operationId ?? "",
       slug(operation.title),
       [operation.owner, operation.sourceMethod.replace(/\(\)$/, "")].filter(Boolean).join(".")
     ];

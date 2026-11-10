@@ -46,7 +46,7 @@ export class MCPSchemaForger {
         dev: "tsx server.ts"
       },
       dependencies: {
-        docs2mcp: "^0.1.0"
+        docs2mcp: "github:suissa/docs2mcp#main"
       },
       devDependencies: {
         "@types/node": "^24.10.0",

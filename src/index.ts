@@ -28,3 +28,4 @@ export { createChannelServer, buildOpenApiDocument } from "./runtime/ChannelServ
 export { createMcpServer, jsonSchemaToZod } from "./runtime/MCPServerFactory.js";
 export { UpstreamMcpExecutor } from "./runtime/UpstreamMcpExecutor.js";
 export type * from "./types.js";
+export { OpenApiDocsExtractor } from "./extractors/OpenApiDocsExtractor.js";
