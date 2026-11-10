@@ -21,7 +21,7 @@ export async function runFromConfig(configLocation: string | URL): Promise<void>
 
   const executor = new RoutingToolExecutor(model, {
     api: {
-      ...(config.api?.baseUrl ?? model.source.api?.baseUrl ? { baseUrl: config.api?.baseUrl ?? model.source.api?.baseUrl } : {}),
+      ...(config.api?.baseUrl ? { baseUrl: config.api.baseUrl } : model.source.api?.baseUrl ? { baseUrl: model.source.api.baseUrl } : {}),
       ...(config.api?.headers ? { headers: config.api.headers } : {}),
       ...(config.api?.authEnv ? { authEnv: config.api.authEnv } : {}),
       ...(config.api?.timeoutMs ? { timeoutMs: config.api.timeoutMs } : {})
