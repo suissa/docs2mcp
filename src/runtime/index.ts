@@ -26,7 +26,7 @@ export async function runFromConfig(configLocation: string | URL): Promise<void>
       ...(config.api?.authEnv ? { authEnv: config.api.authEnv } : {}),
       ...(config.api?.timeoutMs ? { timeoutMs: config.api.timeoutMs } : {})
     },
-    ...(upstreamUrl ? { upstream: { url: upstreamUrl, headers: config.upstream?.headers, timeoutMs: config.upstream?.timeoutMs } } : {})
+    ...(upstreamUrl ? { upstream: { url: upstreamUrl, ...(config.upstream?.headers ? { headers: config.upstream.headers } : {}), ...(config.upstream?.timeoutMs ? { timeoutMs: config.upstream.timeoutMs } : {}) } } : {})
   });
   const channels = {
     rest: config.channels?.rest ?? model.channels.rest,
