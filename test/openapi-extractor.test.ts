@@ -63,7 +63,7 @@ describe("Mintlify OpenAPI extraction", () => {
         processedSecurityOptions: []
       }
     };
-    const html = "<html><body><script type=\\"application/json\\">" +
+    const html = "<html><body><script type=\"application/json\">" +
       JSON.stringify({ openApiReferenceData: reference }) + "</script></body></html>";
     const page = {
       url: "https://docs.abacatepay.com/pages/payment/create",
@@ -139,7 +139,7 @@ describe("Mintlify OpenAPI extraction", () => {
       }
     };
     const root = "https://docs.example.test/";
-    const html = "<html><body><a href=\\"/openapi.json\\">OpenAPI</a></body></html>";
+    const html = "<html><body><a href=\"/openapi.json\">OpenAPI</a></body></html>";
     const extracted = await new OpenApiDocsExtractor().extract({
       page: {
         url: root, html, title: "Example", description: "", contentType: "text/html"
