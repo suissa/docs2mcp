@@ -308,7 +308,8 @@ export class CustomHtmlDocsExtractor {
       kind: operations.length > 0 ? "sdk" : "unknown",
       navigation,
       pages,
-      operations
+      operations,
+      sourceDocuments
     };
     if (language) result.language = language;
     if (version) result.version = version;

@@ -8,6 +8,7 @@ import {
   MkDocsDocsExtractor,
   UnknownDocsExtractor
 } from "../extractors/SystemDocsExtractors.js";
+import { OpenApiDocsExtractor } from "../extractors/OpenApiDocsExtractor.js";
 
 export class DocsForger {
   async forge(
@@ -17,7 +18,13 @@ export class DocsForger {
     maxPages = 100
   ): Promise<ExtractedDocumentation> {
     const extractor = this.createExtractor(system);
-    return extractor.extract({ page, fetchPage, maxPages });
+    const extracted = await extractor.extract({ page, fetchPage, maxPages });
+    return new OpenApiDocsExtractor().extract({
+      page,
+      extracted,
+      fetchPage,
+      maxSpecs: 8
+    });
   }
 
   private createExtractor(system: DocumentationSystem): CustomHtmlDocsExtractor {
